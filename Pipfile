@@ -7,13 +7,17 @@ verify_ssl = true
 pytest = "*"
 autopep8 = "*"
 pylama = "*"
+aiohttp-autoreload = "*"
+bpython = "*"
 
 [packages]
 redis = "*"
 psycopg2 = "*"
 aiohttp = "*"
-asyncio-redis = "*"
 xmltodict = "*"
+aioredis = "*"
+async-lru = "*"
+lru-cache = "*"
 
 [requires]
 python_version = "3.7"

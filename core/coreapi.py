@@ -8,7 +8,7 @@ import aiohttp
 
 import xmltodict
 
-from .settings import SAULT, SERVICE_ROOT_DIR, TM_HOST, TM_PORT
+from settings import SAULT, SERVICE_ROOT_DIR, TM_HOST, TM_PORT
 
 
 class TMAPIBase:
