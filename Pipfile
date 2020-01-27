@@ -18,6 +18,7 @@ xmltodict = "*"
 aioredis = "*"
 async-lru = "*"
 lru-cache = "*"
+posix-ipc = "*"
 
 [requires]
 python_version = "3.7"
