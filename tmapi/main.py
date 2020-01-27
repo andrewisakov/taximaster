@@ -23,6 +23,7 @@ async def create_engines(app):
 async def dispose_engines(app):
     # app['redis'].stop()
     app['redis'].close()
+    await app['redis'].wait_closed()
 
 
 @routes.get('/execsvcscript')
