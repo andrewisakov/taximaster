@@ -68,9 +68,4 @@ class TMABConnect(BaseHandler):
 
 @lru_cache(maxsize=100)
 def select_handlers(event):
-    # return [cls.handle for cls in BaseHandler.__subclasses__() if event.upper() in cls.EVENTS]
-    result = []
-    for cls in BaseHandler.__subclasses__():
-        if event.upper() in cls.EVENTS:
-            result.append(cls.handle)
-    return result
+    return [cls.handle for cls in BaseHandler.__subclasses__() if event.upper() in cls.EVENTS]

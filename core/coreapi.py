@@ -5,10 +5,12 @@ import json
 import urllib.parse
 
 import aiohttp
+import aiopg
 
 import xmltodict
 
-from settings import SAULT, SERVICE_ROOT_DIR, TM_HOST, TM_PORT
+from settings import SAULT, SERVICE_ROOT_DIR, TM_HOST, TM_PORT, DSN
+from core.utils.json import get_value
 
 
 class TMAPIBase:
@@ -18,7 +20,8 @@ class TMAPIBase:
                    'get_info_by_order_id',
                    'change_order_state']
 
-    async def _request(self, method, url, headers, data=None, json=None):
+    @classmethod
+    async def _request(cls, method, url, headers, data=None, json=None):
         method = method.lower()
         response = None
         context = ssl._create_unverified_context()
@@ -29,27 +32,29 @@ class TMAPIBase:
                 response = r
         return response
 
+    @classmethod
     def _signature(self, data):
         return hashlib.md5((data+SAULT).encode()).hexdigest()
 
-    async def _inline_request(self, api, ver, data, request, method='GET'):
+    @classmethod
+    async def _inline_request(cls, api, ver, data, request, method='GET'):
         method = method.upper()
         url = f'https://{TM_HOST}:{TM_PORT}/{api}/{ver}/{request}'
         params = urllib.parse.urlencode(data)
-        _signature = self._signature(params)
+        _signature = cls._signature(params)
 
         headers = {'Signature': _signature,
-                   'Content-Type': self.CONTENT_TYPE_X_WWW_FORM_URLENCODED,
+                   'Content-Type': cls.CONTENT_TYPE_X_WWW_FORM_URLENCODED,
                    }
 
-        if request in self.INLINE_SIGN:
+        if request in cls.INLINE_SIGN:
             params += f'&signature={_signature}'
 
         if method == 'GET':
             url += f'?{params}'
             params = None
 
-        response = await self._request(method, url, headers, data=params)
+        response = await cls._request(method, url, headers, data=params)
 
         try:
             # JSON ?
@@ -75,107 +80,140 @@ class TMAPIBase:
 
         return response
 
-    async def _json_request(self, api, ver, data, request, method='POST'):
+    @classmethod
+    async def _json_request(cls, api, ver, data, request, method='POST'):
         url = f'https://{TM_HOST}:{TM_PORT}/{api}/{ver}/{request}'
-        headers = {'Signature': self._signature(data),
-                   'Content-Type': self.CONTENT_TYPE_APP_JSON,
+        headers = {'Signature': cls._signature(data),
+                   'Content-Type': cls.CONTENT_TYPE_APP_JSON,
                    }
-        await self._request(method.lower(), url, headers, json=data)
-        return
+        response = await cls._request(method.lower(), url, headers, json=data)
+        return response
 
 
 class TMAPI(TMAPIBase):
-    async def get_request_state(self, data, *args, **kwargs):
+    @classmethod
+    async def get_request_state(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('tm_tapi', '1.0', data,
-                                          request=request, method='POST')
+        return await cls._inline_request('tm_tapi', '1.0', data,
+                                         request=request, method='POST')
 
-    async def create_driver_operation(self, data, *args, **kwargs):
+    @classmethod
+    async def create_driver_operation(cls, data, *args, **kwargs):
+        request = inspect.currentframe().cu_frame.f_code.co_name
+        return await cls._json_request('common_api', '1.0', data,
+                                       request=request, method='POST')
+
+    @classmethod
+    async def save_client_feed_back(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
         return await self._json_request('common_api', '1.0', data,
                                         request=request, method='POST')
 
-    async def save_client_feed_back(self, data, *args, **kwargs):
+    @classmethod
+    async def ping(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._json_request('common_api', '1.0', data,
-                                        request=request, method='POST')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def ping(self, data, *args, **kwargs):
+    @classmethod
+    async def get_finished_orders(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_finished_orders(self, data, *args, **kwargs):
+    @classmethod
+    async def get_drivers_info(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_drivers_info(self, data, *args, **kwargs):
+    @classmethod
+    async def get_driver_info(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_driver_info(self, data, *args, **kwargs):
+    @classmethod
+    async def get_order_state(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_order_state(self, data, *args, **kwargs):
+    @classmethod
+    async def check_authorization(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def check_authorization(self, data, *args, **kwargs):
+    @classmethod
+    async def get_car_info(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_car_info(self, data, *args, **kwargs):
+    @classmethod
+    async def get_crew_groups_list(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_crew_groups_list(self, data, *args, **kwargs):
+    @classmethod
+    async def get_crews_info(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_crews_info(self, data, *args, **kwargs):
+    @classmethod
+    async def get_tariffs_list(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_tariffs_list(self, data, *args, **kwargs):
+    @classmethod
+    async def get_services_list(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_services_list(self, data, *args, **kwargs):
+    @classmethod
+    async def get_discounts_list(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_discounts_list(self, data, *args, **kwargs):
+    @classmethod
+    async def get_current_orders(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('common_api', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_current_orders(self, data, *args, **kwargs):
+    @classmethod
+    async def get_info_by_order_id(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('common_api', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('tm_tapi', '1.0', data,
+                                         request=request, method='GET')
 
-    async def get_info_by_order_id(self, data, *args, **kwargs):
+    @classmethod
+    async def change_order_state(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('tm_tapi', '1.0', data,
-                                          request=request, method='GET')
+        return await cls._inline_request('tm_tapi', '1.0', data,
+                                         request=request, method='POST')
 
-    async def change_order_state(self, data, *args, **kwargs):
+    @classmethod
+    async def create_order2(cls, data, *args, **kwargs):
         request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._inline_request('tm_tapi', '1.0', data,
-                                          request=request, method='POST')
+        return await cls._json_request('common_api', '1.0', data,
+                                       request=request, method='POST')
 
-    async def create_order2(self, data, *args, **kwargs):
-        request = inspect.currentframe().cu_frame.f_code.co_name
-        return await self._json_request('common_api', '1.0', data,
-                                        request=request, method='POST')
+    @classmethod
+    async def get_order_state_id(cls, state_name, *args, **kwargs):
+        with await aiopg.connect(DSN) as pgcon:
+            with await pgcon.cursor() as c:
+                await c.execute('select settings, id from order_states where is not null;')
+                async for r in c:
+                    sets = xmltodict.parse(r[0])
+                    if int(get_value('settings.oktell.to_client.use_call_back', sets)):
+                        event_name = get_value(
+                            'settings.oktell.to_client.script_name', sets).upper()
+                    if event_name == state_name:
+                        return r[1]
