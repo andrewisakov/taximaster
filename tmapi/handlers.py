@@ -6,44 +6,43 @@ class BaseHandler:
     EVENT = 'CALLBACK_ORIGINATE_ACCEPTED'
 
     @classmethod
-    async def handle(cls, data, app):
+    async def handle(cls, data, app, logger):
         message = {
             'order_id': data['order_id'],
             'state': data['callback_state'],
         }
-        await cls.publish(cls.EVENT, message, app)
+        await cls.publish(cls.EVENT, message, app, logger)
 
     @classmethod
-    async def publish(cls, event, message, app):
+    async def publish(cls, event, message, app, logger):
         with await app['redis'] as redcon:
-            print(event, message)
+            logger.debug('Publish %s: %s', event, message)
             redcon.publish(event, json.dumps(message))
 
 
 class OrderEvent(BaseHandler):
     EVENTS = ('ORDER_ASSIGNED',)
     @classmethod
-    async def handle(cls, data, app):
-        await super().handle(data, app)
+    async def handle(cls, data, app, logger):
+        await super().handle(data, app, logger)
         event = 'OKTELL_{}'.format(data['event'].upper())
         message = {
             'order_id': data['order_id'],
             'phones': (data['phone1'], ),
         }
-        await cls.publish(event, message, app)
+        await cls.publish(event, message, app, logger)
 
 
 class TMABConnect(BaseHandler):
     EVENTS = ('TMABCONNECT', )
     @classmethod
-    async def handle(cls, data, app):
+    async def handle(cls, data, app, logger):
         event = 'OKTELL_'.format(data['event'])
         message = {
             'order_id': data['order_id'],
-            'phones': (data['phone1'], ),
+            'phones': (data['phone1'], data['phone2'], ),
         }
-        print(event, message)
-        await cls.publish(event, message, app)
+        await cls.publish(event, message, app, logger)
 
 
 @lru_cache(maxsize=100)

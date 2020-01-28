@@ -1,3 +1,4 @@
+import logging
 import aioredis
 from aiohttp import web
 
@@ -5,7 +6,7 @@ import settings
 from core.parsers import request_parser
 from .handlers import select_handlers
 
-
+LOGGER = logging.getLogger()
 routes = web.RouteTableDef()
 
 DEBUG = True
@@ -31,7 +32,7 @@ async def oktell_request(request):
     _request = request_parser(request.rel_url.query)
     handlers = select_handlers(_request.get('event'))
     for handler in handlers:
-        await handler(_request, request.app)
+        await handler(_request, request.app, LOGGER)
     return web.Response()
 
 
