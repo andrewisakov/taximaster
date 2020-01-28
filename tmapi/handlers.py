@@ -1,5 +1,25 @@
 import json
 from functools import lru_cache
+import psycopg2
+import xmltodict
+from core.utils.json import get_value
+from settings import DSN
+
+
+def load_events():
+    EVENTS = []
+    with psycopg2.connect(DSN) as db:
+        with db.cursor() as c:
+            c.execute(
+                'select settings from order_states where settings is not null;')
+            for row in c:
+                sets = xmltodict.parse(row[0])
+                if int(get_value('settings.oktell.to_client.use_call_back', sets)):
+                    event_name = get_value(
+                        'settings.oktell.to_client.script_name', sets).upper()
+                    if event_name:
+                        EVENTS.append(event_name)
+    return EVENTS
 
 
 class BaseHandler:
@@ -21,7 +41,8 @@ class BaseHandler:
 
 
 class OrderEvent(BaseHandler):
-    EVENTS = ('ORDER_ASSIGNED',)
+    EVENTS = load_events()
+
     @classmethod
     async def handle(cls, data, app, logger):
         await super().handle(data, app, logger)
@@ -47,4 +68,9 @@ class TMABConnect(BaseHandler):
 
 @lru_cache(maxsize=100)
 def select_handlers(event):
-    return [cls.handle for cls in BaseHandler.__subclasses__() if event.upper() in cls.EVENTS]
+    # return [cls.handle for cls in BaseHandler.__subclasses__() if event.upper() in cls.EVENTS]
+    result = []
+    for cls in BaseHandler.__subclasses__():
+        if event.upper() in cls.EVENTS:
+            result.append(cls.handle)
+    return result
