@@ -2,7 +2,7 @@ import asyncio
 import aioredis
 import logging
 import settings
-from .events import register, unregister
+from core.events.base import register, unregister
 
 
 LOGGER = logging.getLogger('tmapi')

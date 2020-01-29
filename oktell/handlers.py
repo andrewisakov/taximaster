@@ -23,7 +23,7 @@ def load_events():
 
 
 class BaseHandler:
-    EVENT = 'CALLBACK_ORIGINATE_ACCEPTED'
+    EVENT = 'CALLBACK:ORIGINATE:ACCEPTED'
 
     @classmethod
     async def handle(cls, data, app, logger):
@@ -46,7 +46,7 @@ class OrderEvent(BaseHandler):
     @classmethod
     async def handle(cls, data, app, logger):
         await super().handle(data, app, logger)
-        event = 'OKTELL_{}'.format(data['event'].upper())
+        event = 'OKTELL:{}'.format(data['event'].upper())
         message = {
             'order_id': data['order_id'],
             'phones': (data['phone1'], ),
@@ -58,7 +58,7 @@ class TMABConnect(BaseHandler):
     EVENTS = ('TMABCONNECT', )
     @classmethod
     async def handle(cls, data, app, logger):
-        event = 'OKTELL_'.format(data['event'])
+        event = 'OKTELL:{}'.format(data['event'])
         message = {
             'order_id': data['order_id'],
             'phones': (data['phone1'], data['phone2'], ),
