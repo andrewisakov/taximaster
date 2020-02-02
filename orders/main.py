@@ -1,12 +1,12 @@
+import logging
+import aioredis
 import asyncio
 import aiopg
-import aioredis
-import logging
-from .config import DSN, REDIS
 from .handlers import register, unregister
+from .config import DSN, REDIS, CALLBACK_STOP
 
 
-LOGGER = logging.getLogger('tmapi')
+LOGGER = logging.getLogger()
 
 
 async def _main(loop):
@@ -15,8 +15,10 @@ async def _main(loop):
     loop.pg_pool = await aiopg.create_pool(**DSN)
     with await redpool as redcon:
         channels = await register(loop, redcon, LOGGER)
+        for channel in channels:
+            channel.CALLBACK_STOP = CALLBACK_STOP
         channels = await asyncio.gather(*channels)
-        await unregister(channels, redcon, LOGGER)
+        await unregister(channels)
 
 
 def main():

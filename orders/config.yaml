@@ -1,0 +1,28 @@
+databases:
+  init_tracker: &base
+    database: postgres
+    user: postgres
+    password: postgres
+    host: 192.168.222.179
+    port: 5432
+
+  order_tracker:
+    <<: *base
+    database: order_tracker
+    minsize: 1
+    maxsize: 10
+
+redis:
+  host: 192.168.222.90
+
+callback_stop:
+  - "OKTELL:ORDER_CLIENT_FUCK"
+  - "OKTELL:ORDER_CLIENT_IN_CAR"
+  - "OKTELL:ORDER_ABORTED"
+  - "OKTELL:ORDER_COMPLETED"
+
+callback_start:
+  - "OKTELL:ORDER_CLIENT_GONE"
+  - "OKTELL:ORDER_CREW_AT_PLACE"
+  - "OKTELL:ORDER_ACCEPTED"
+  - "OKTELL:ORDER_NO_CARS"

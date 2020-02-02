@@ -17,12 +17,10 @@ if DEBUG:
 
 
 async def create_engines(app):
-    # await routes.setup(app)
     app['redis'] = await aioredis.create_redis_pool(settings.REDIS_HOST)
 
 
 async def dispose_engines(app):
-    # app['redis'].stop()
     app['redis'].close()
     await app['redis'].wait_closed()
 

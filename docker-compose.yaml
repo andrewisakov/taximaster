@@ -1,0 +1,63 @@
+version: "3.3"
+services:
+  redis:
+    hostname: redis
+    image: redis
+    ports:
+      - 6379:9379
+  postgres:
+    hostname: postgres
+    image: postgres:10
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+  order_tracker:
+    build:
+      context: ./
+      dockerfile: ./orders/dockerfile
+    container_name: order_tracker
+    links:
+      - postgres
+      - redis
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      WAIT_HOSTS: postgres:5432
+    hostname: orders
+    command: >
+      pipenv run python run_orders.py
+  tmapi_proxy:
+    build:
+      context: ./
+      dockerfile: ./tmapi/dockerfile
+    container_name: tmapi_proxy
+    links:
+      - postgres
+      - redis
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      WAIT_HOSTS: postgres:5432
+    hostname: tmapi_proxy
+    command: >
+      pipenv run python run_tmapi.py
+    ports:
+      - 8080
+  oktell_proxy:
+    build:
+      context: ./
+      dockerfile: ./oktell/dockerfile
+    container_name: oktell_proxy
+    links:
+      - redis
+    ports:
+      - 24055:8080
+    depends_on:
+      - redis
+    hostname: oktell_proxy
+    command: >
+      pipenv run python run_oktell.py

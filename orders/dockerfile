@@ -1,0 +1,6 @@
+FROM python:3.7-alpine
+RUN apk add --update --no-cache g++ alpine-sdk postgresql postgresql-dev libffi libffi-dev openrc bash
+WORKDIR /orders
+COPY . .
+RUN pip install pipenv
+RUN pipenv install

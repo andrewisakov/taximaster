@@ -9,6 +9,7 @@ autopep8 = "*"
 pylama = "*"
 aiohttp-autoreload = "*"
 bpython = "*"
+isort = "*"
 
 [packages]
 redis = "*"
@@ -20,6 +21,7 @@ async-lru = "*"
 lru-cache = "*"
 posix-ipc = "*"
 aiopg = "*"
+pyyaml = "*"
 
 [requires]
 python_version = "3.7"

@@ -8,16 +8,28 @@ class BaseEvent:
     ENRICH_DATA = False
     LOGGER = None
 
-    async def create(self, payload):
+    def __init__(self, payload, publisher=None):
         self._payload = payload
+        self._publisher = publisher or self.REDCON
 
     async def publish(self):
-        with await self.REDCON.acquire() as redcon:
-            redcon.publish(self.EVENT, self.payload)
+        self.REDCON.publish(self.EVENT, self.payload)
 
     @property
     def payload(self):
         return json.dumps(self._payload)
+
+    @classmethod
+    async def save(cls, data):
+        async with cls.PG_POOL.acquire() as pgcon:
+            async with pgcon.cursor() as c:
+                await c.excute(('insert into events (order_id, event, data) '
+                                'values (%(order_id)s, %(event)s, %(data)s);'),
+                               {'order_id': data.get('order_id'),
+                                'event': cls.EVENT,
+                                'data': data,
+                                }
+                               )
 
     @classmethod
     async def handle(cls, data):
@@ -62,10 +74,13 @@ async def register(loop, redcon, logger):
                 cls.channel_reader(channel[0]), loop=loop))
             cls.LOGGER = logger
             cls.REDCON = redcon
+            cls.PGPOOL = loop.pg_pool
             logger.debug('Event %s registered %s', cls.EVENT, channel)
-    logger.debug('%s events registered.', len(channels))
+    logger.info('%s events registered.', len(channels))
     return channels
 
 
-async def unregister(channels):
+async def unregister(channels, redcon, logger):
+    logger.info('%s events unregistering.', len(channels))
     await redcon.unsubscribe(*[ch for ch in channels.keys()])
+    logger.info('%s events unregistered.', len(channels))

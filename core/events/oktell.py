@@ -14,6 +14,7 @@ class OktellOrderCreated(BaseEvent):
     @classmethod
     async def handle(cls, data):
         await super().handle(data)
+        await cls.save(data)
 
 
 class OktellOrderCompleted(BaseEvent):
@@ -23,6 +24,7 @@ class OktellOrderCompleted(BaseEvent):
     @classmethod
     async def handle(cls, data):
         await super().handle(data)
+        await cls.save(data)
 
 
 class OktellOrderAborted(BaseEvent):
@@ -32,6 +34,7 @@ class OktellOrderAborted(BaseEvent):
     @classmethod
     async def handle(cls, data):
         data = await super().handle(data)
+        await cls.save(data)
 
 
 class OktellOrderNoCars(OktellMessageMixin, BaseEvent):
@@ -42,7 +45,7 @@ class OktellOrderNoCars(OktellMessageMixin, BaseEvent):
     async def handle(cls, data):
         data = await super().handle(data)
         data.update(**cls.create_message(data))
-
+        await cls.save(data)
 
 class OktellOrderAccepted(OktellMessageMixin, BaseEvent):
     EVENT = 'OKTELL:ORDER_ACCEPTED'
@@ -52,7 +55,7 @@ class OktellOrderAccepted(OktellMessageMixin, BaseEvent):
     async def handle(cls, data):
         data = await super().handle(data)
         data.update(**cls.create_message(data))
-
+        await cls.save(data)
 
 class OktellOrderCrewAtPlace(OktellMessageMixin, BaseEvent):
     EVENT = 'OKTELL:ORDER_CREW_AT_PLACE'
@@ -62,6 +65,7 @@ class OktellOrderCrewAtPlace(OktellMessageMixin, BaseEvent):
     async def handle(cls, data):
         data = await super().handle(data)
         data.update(**cls.create_message(data))
+        await cls.save(data)
 
 
 class OktellOrderClientInCar(BaseEvent):
@@ -70,6 +74,7 @@ class OktellOrderClientInCar(BaseEvent):
     @classmethod
     async def handle(cls, data):
         data = await super().handle(data)
+        await cls.save(data)
 
 
 class OktellOrderClientFuck(BaseEvent):
@@ -78,6 +83,7 @@ class OktellOrderClientFuck(BaseEvent):
     @classmethod
     async def handle(cls, data):
         data = await super().handle(data)
+        await cls.save(data)
 
 
 class OktellOrderClientGone(OktellMessageMixin, BaseEvent):
@@ -87,3 +93,4 @@ class OktellOrderClientGone(OktellMessageMixin, BaseEvent):
     async def handle(cls, data):
         data = await super().handle(data)
         data.update(**cls.create_message(data))
+        await cls.save(data)
