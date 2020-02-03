@@ -47,6 +47,7 @@ class OktellOrderNoCars(OktellMessageMixin, BaseEvent):
         data.update(**cls.create_message(data))
         await cls.save(data)
 
+
 class OktellOrderAccepted(OktellMessageMixin, BaseEvent):
     EVENT = 'OKTELL:ORDER_ACCEPTED'
     ENRICH_DATA = True
@@ -56,6 +57,7 @@ class OktellOrderAccepted(OktellMessageMixin, BaseEvent):
         data = await super().handle(data)
         data.update(**cls.create_message(data))
         await cls.save(data)
+
 
 class OktellOrderCrewAtPlace(OktellMessageMixin, BaseEvent):
     EVENT = 'OKTELL:ORDER_CREW_AT_PLACE'

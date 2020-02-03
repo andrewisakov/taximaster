@@ -2,6 +2,7 @@ import psycopg2
 from copy import deepcopy
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.errors import DuplicateDatabase, DuplicateTable
+import aiopg
 
 
 def create_tables(TABLES):

@@ -48,8 +48,8 @@ class BaseEvent:
         result = {}
         if cls.ENRICH_DATA:
             cls.LOGGER.debug('Enrich order %s data.', data['order_id'])
-            order_state = TMAPI.get_order_state(data)
-            order_info = TMAPI.get_info_by_order_id(
+            order_state = await TMAPI.get_order_state(data)
+            order_info = await TMAPI.get_info_by_order_id(
                 {**data,
                  'fields': ('DRIVER_TIMECOUNT-'
                             'SUMM-'
@@ -61,8 +61,8 @@ class BaseEvent:
                             'CLIENT_ID'),
                  })
             # Консолидидация результатов двух запросов. Кривизна TM API...
-            result = order_state['data'].update(order_info['data'])
-        return result
+            data = order_state['data'].update(order_info['data'])
+        return data
 
 
 async def register(loop, redcon, logger):

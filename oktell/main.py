@@ -27,7 +27,7 @@ async def dispose_engines(app):
 
 @routes.get('/execsvcscript')
 async def oktell_request(request):
-    _request = request_parser(request.rel_url.query)
+    _request = await request_parser(request.rel_url.query)
     handlers = select_handlers(_request.get('event'))
     for handler in handlers:
         await handler(_request, request.app, LOGGER)
