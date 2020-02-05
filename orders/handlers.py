@@ -16,3 +16,5 @@ from core.events.oktell import (
     OktellOrderCrewAtPlace,
     OktellOrderNoCars
 )
+
+from .database import AsteriskSounds

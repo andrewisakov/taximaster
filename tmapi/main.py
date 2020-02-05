@@ -15,6 +15,7 @@ async def _main(loop):
     loop.pg_pool = await aiopg.create_pool(**DSN)
     TMAPI.HOST, TMAPI.PORT, TMAPI.SOLT, PG_POOL = TMTAPI.get(
         'host'), TMTAPI.get('port'), TMTAPI.get('solt'), loop.pg_ppol
+
     with await redpool as redcon:
         channels = await register(loop, redcon, LOGGER)
         channels = await asyncio.gather(*channels)

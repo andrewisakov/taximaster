@@ -8,19 +8,17 @@ import aiopg
 def create_tables(TABLES):
     commands = []
     for tbl, tbl_data in TABLES.items():
-        commands.append(f'create table {tbl} ' '({});'.format(
+        primary_key = tbl_data.get('primary key')
+        commands.append(f'create table if not exists {tbl} ' '({});'.format(
             ','.join(
                 [f'{fname} {ftype}' for fname,
-                 ftype in tbl_data.get('fields').items()]
+                 ftype in tbl_data.get('fields').items()] +
+                [f'constraint pk_{tbl} primary key ({primary_key})'] if primary_key else []
             )
         )
         )
         for idx in tbl_data.get('indexes'):
             commands.append(f'create index on {tbl} ({idx});')
-        primary_key = tbl_data.get('primary key')
-        if primary_key:
-            commands.append(
-                f'alter table {tbl} add primary key ({primary_key});')
     return commands
 
 

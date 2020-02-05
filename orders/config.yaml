@@ -12,6 +12,14 @@ databases:
     minsize: 1
     maxsize: 10
 
+  tme_db:
+    database: tme_db
+    user: postgres
+    password: postgres
+    host: 192.168.222.179
+    minsize: 1
+    maxsize: 10
+
 redis:
   host: 192.168.222.90
 
@@ -31,3 +39,6 @@ tmtapi:
   host: "192.168.222.211"
   port: 8089
   solt: "1292"
+
+asterisk_sounds:
+  csv: asterisk_sounds_utf8.csv

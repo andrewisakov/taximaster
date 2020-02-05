@@ -1,13 +1,10 @@
-import datetime
 import hashlib
+import datetime
 import inspect
 import json
 import urllib.parse
-import ssl
 
 import aiohttp
-import aiopg
-
 import xmltodict
 
 from core.utils.json import get_value
@@ -18,6 +15,7 @@ class TMAPIBase:
     TM_PORT = None
     TM_SOLT = None
     PG_POOL = None
+    ASTERISK_SOUNDS = None
     CONTENT_TYPE_X_WWW_FORM_URLENCODED = 'application/x-www-form-urlencoded'
     CONTENT_TYPE_APP_JSON = 'application/json'
     INLINE_SIGN = ['set_request_state',
@@ -205,3 +203,120 @@ class TMAPI(TMAPIBase):
                             'settings.oktell.to_client.script_name', sets).upper()
                     if event_name == state_name:
                         return r[1]
+
+    @classmethod
+    async def create_message(cls, event, data):
+        if not cls.ASTERISK_SOUNDS:
+            cls.LOGGER.error('Отсутсвует описание озвучки!')
+            return [], None
+
+        message = cls.ASTERISK_SOUNDS.get(event, cls.ASTERISK_SOUNDS.MESSAGE_TYPE)
+        if not message:
+            cls.LOGGER.error('Отсутствует озвучка для события %s!', event)
+            return [], None
+
+        if event == 'ORDER_NO_CARS':
+            return [f'{message}.wav'], None 
+        
+        sms_message = ''
+
+        mark = data.get('car_mark', '').strip()
+        model = data.get('car_model', '').strip()
+        color = data.get('car_color', '').strip()
+        gosn = data.get('gosnumber', '').strip()
+        source_time = data.get('source_time')
+        car_id = data.get('car_id',)
+        driver_timecount = int(data.get('driver_timecount', 0))
+        discountedsumm = data.get('discountedsumm')
+        cashless = data.get('client_id', 0) != 0
+
+        mark = mark.split(' ')[0]
+        mark_sound = cls.ASTERISK_SOUNDS.get(mark, cls.ASTERISK_SOUNDS.MARK_TYPE)
+        if not mark_sound:
+            cls.LOGGER.warning('Отсутсвует озвучка для "%s"!', mark)
+        sms_message += f'{mark}'
+        
+        model_sound = []
+        if mark.upper().split(' ')[0] == 'ВАЗ':
+            sms_message += f' {model}\n'
+            ma = {0: model[:2], 2: model[-2:]}
+            if len(model) == 5:
+                ma[1] = model[2]
+            for m in sorted(ma):
+                if len(ma[m]) == 2:
+                    if ma[m][0] == '1':
+                        model_sound.append(f'tm{ma[m]}')
+                    elif ma[m][0] == '0':
+                        model_sound.append('tm{ma[m][0]}')
+                        model_sound.append('tm{ma[m][1]}')
+                    else:
+                        model_sound.append('tm{ma[m][0]}0')
+                        model_sound.append('tm{ma[m][1]}')
+                else:
+                    model_sound.append(f'tm{ma[m]}')
+        else:
+            sms_message += '\n'
+        model_sound = '&'.join(model_sound)
+
+        color_sound = ''
+        if color:
+            color_sound = cls.ASTERISK_SOUNDS.get(color, cls.ASTERISK_SOUNDS.COLOR_TYPE)
+            sms_message += f'{color}\n'
+        if not color_sound:
+            cls.LOGGING.warning('Отсутствует озвучка для "%s"!', color)
+            message = message.replace('&tmColor', '')
+        
+        gosn_sound = []
+        if gosn:
+            sms_message += f'{gosn}\n'
+            gosn = (gosn[:len(gosn) - 2], gosn[-2:])
+            for gn in gosn:
+                if len(gn) == 1: # 100
+                    gosn_sound.append(f'tm{gn}00')
+                else:
+                    if gn[0] == '1': # 10..19
+                        gosn_sound.append(f'tm{gn}')
+                    elif gn[0] == '0': # 0..9
+                        if len(gosn) == 3 and gn[1] != '0':
+                            gosn_sound.append(f'tm{gn[1]}')
+                        else:
+                            gosn_sound.append('tm0')
+                            gosn_sound.append(f'tm{gn[1]}')
+                    else:
+                        gosn_sound.append(f'tm{gn[0]}0')
+                        gosn_sound.append(f'tm{gn[1]}')
+        else:
+            cls.LOGGER.warinig('Отсутсвует госномер для car_id: %s', car_id)
+            message = message.replace('&tmgos_nomer', '')
+        gosn_sound = '&'.join(gosn_sound)
+        
+        minutes_timecount = []
+        if driver_timecount and driver_timecount > 0:
+            sms_message += f'{driver_timecount} мин\n'
+            t = driver_timecount % 10
+            d = driver_timecount // 10
+            if driver_timecount > 19:
+                minutes_timecount.append(f'tm{d}0')
+                if t > 0:
+                    minutes_timecount.append(f'tm{t}')
+            else:
+                minutes_timecount.append(f'tm{driver_timecount}')
+        else:
+            sms_message += '5-7 мин\n'
+            minutes_timecount.append('tm5')
+            minutes_timecount.append('tm7')
+        
+        minutes_timecount = '&'.join(minutes_timecount)
+
+        message = message.replace('$mark', mark_sound)\
+                        .replace('$model', model_sound)\
+                        .replace('$color', color_sound)\
+                        .replace('$gosnumber', gosn_sound)\
+                        .replace('$minutes', minutes_timecount)\
+                        .replace('&&', '&')\
+                        .split('&')
+        message = [f'{m}.wav' for m in message if m]
+        sms_message += 'Расчёт по таксометру.'
+        cls.LOGGER.info('SMS: %s', sms_message)
+        cls.LOGGER.info('CALL:%s', message)
+        return message, sms_message

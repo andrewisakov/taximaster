@@ -21,15 +21,22 @@ class BaseEvent:
 
     @classmethod
     async def save(cls, data):
+        errors = []
         async with cls.PG_POOL.acquire() as pgcon:
             async with pgcon.cursor() as c:
-                await c.excute(('insert into events (order_id, event, data) '
-                                'values (%(order_id)s, %(event)s, %(data)s);'),
-                               {'order_id': data.get('order_id'),
-                                'event': cls.EVENT,
-                                'data': data,
-                                }
-                               )
+                try:
+                    data['discountedsumm'] = str(data['discountedsumm'])
+                    data['source_time'] = str(data['source_time'])
+                    await c.execute(('insert into order_events (order_id, event, data) '
+                                    'values (%(order_id)s, %(event)s, %(data)s);'),
+                                {'order_id': data.get('order_id'),
+                                    'event': cls.EVENT,
+                                    'data': json.dumps(data),
+                                    }
+                                )
+                except Exception as e:
+                    errors.append(str(e))
+        return errors
 
     @classmethod
     async def handle(cls, data):
@@ -48,20 +55,23 @@ class BaseEvent:
         result = {}
         if cls.ENRICH_DATA:
             cls.LOGGER.debug('Enrich order %s data.', data['order_id'])
-            order_state = await TMAPI.get_order_state(data)
-            order_info = await TMAPI.get_info_by_order_id(
-                {**data,
-                 'fields': ('DRIVER_TIMECOUNT-'
-                            'SUMM-'
-                            'SUMCITY-'
-                            'DISCOUNTEDSUMM-'
-                            'SUMCOUNTRY-'
-                            'SUMIDLETIME-'
-                            'CASHLESS-'
-                            'CLIENT_ID'),
-                 })
-            # Консолидидация результатов двух запросов. Кривизна TM API...
-            data = order_state['data'].update(order_info['data'])
+            async with TMAPI.PG_POOL.acquire() as pgcon:
+                async with pgcon.cursor() as c:
+                    await c.execute((
+                        'select o.driver_timecount, '
+                        'o.discountedsumm, o.clientid as client_id, '
+                        'o.driverid, o.cashless, o.state, o.phone, '
+                        'cr.gosnumber, cr.color as car_color, '
+                        'cr.mark as car_mark, coalesce(cr.model, \'\') as car_model, '
+                        'cr.id as car_id, o.source_time '
+                        'from orders o '
+                        'join crews cw on (cw.id=o.crewid) '
+                        'join cars cr on (cr.id=cw.carid) '
+                        'where o.id=%(order_id)s;'),
+                        {'order_id': data['order_id']})
+                    r = await c.fetchone()
+                    order_data = {cn.name :r[ix] for ix, cn in enumerate(c.description)}
+                    data.update(**order_data)
         return data
 
 
@@ -74,7 +84,7 @@ async def register(loop, redcon, logger):
                 cls.channel_reader(channel[0]), loop=loop))
             cls.LOGGER = logger
             cls.REDCON = redcon
-            cls.PGPOOL = loop.pg_pool
+            cls.PG_POOL = loop.pg_pool
             logger.debug('Event %s registered %s', cls.EVENT, channel)
     logger.info('%s events registered.', len(channels))
     return channels

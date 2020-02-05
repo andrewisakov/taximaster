@@ -1,10 +1,11 @@
 from .base import BaseEvent
+from ..coreapi import TMAPI
 
 
 class OktellMessageMixin:
     @classmethod
     async def create_message(cls, data):
-        pass
+        return (await TMAPI.create_message(cls.EVENT.split(':')[1], data))
 
 
 class OktellOrderCreated(BaseEvent):
@@ -55,7 +56,8 @@ class OktellOrderAccepted(OktellMessageMixin, BaseEvent):
     @classmethod
     async def handle(cls, data):
         data = await super().handle(data)
-        data.update(**cls.create_message(data))
+        message_data = (await cls.create_message(data))
+        data.update(**{'message': message_data[0], 'sms': message_data[1]})
         await cls.save(data)
 
 
