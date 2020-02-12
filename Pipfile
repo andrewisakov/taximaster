@@ -22,7 +22,9 @@ lru-cache = "*"
 posix-ipc = "*"
 aiopg = "*"
 pyyaml = "*"
-alru-cache = "*"
+aiohttp-apispec = "*"
+marshmallow = "*"
+aiohttp-autoreload = "*"
 
 [requires]
 python_version = "3.7"
