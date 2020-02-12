@@ -22,6 +22,7 @@ databases:
 
 redis:
   host: 192.168.222.90
+  maxsize: 50
 
 callback_stop:
   - "OKTELL:ORDER_CLIENT_FUCK"
