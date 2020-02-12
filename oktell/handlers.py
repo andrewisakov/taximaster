@@ -36,7 +36,7 @@ class BaseHandler:
     @classmethod
     async def publish(cls, event, message, app, logger):
         with await app['redis'] as redcon:
-            redcon.publish(event, json.dumps(message))
+            await redcon.publish(event, json.dumps(message))
             logger.debug('Publish %s: %s', event, message)
 
 
