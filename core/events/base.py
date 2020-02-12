@@ -7,13 +7,15 @@ class BaseEvent:
     EVENT = None
     ENRICH_DATA = False
     LOGGER = None
+    RED_POOL = None
 
-    def __init__(self, payload, publisher=None):
+    def __init__(self, payload, red_pool=None):
         self._payload = payload
-        self._publisher = publisher or self.REDCON
+        self._red_pool = red_pool or self.RED_POOL
 
     async def publish(self):
-        self.REDCON.publish(self.EVENT, self.payload)
+        with await self._red_pool as redcon:
+            await redcon.publish(self.EVENT, self.payload)
 
     @property
     def payload(self):
@@ -75,7 +77,7 @@ class BaseEvent:
         return data
 
 
-async def register(loop, redcon, logger):
+async def register(loop, redcon, redpool, logger):
     channels = []
     for cls in BaseEvent.__subclasses__():
         if cls.EVENT:
@@ -83,7 +85,7 @@ async def register(loop, redcon, logger):
             channels.append(asyncio.ensure_future(
                 cls.channel_reader(channel[0]), loop=loop))
             cls.LOGGER = logger
-            cls.REDCON = redcon
+            cls.RED_POOL = redpool
             cls.PG_POOL = loop.pg_pool
             logger.debug('Event %s registered %s', cls.EVENT, channel)
     logger.info('%s events registered.', len(channels))

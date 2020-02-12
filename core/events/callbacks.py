@@ -66,7 +66,8 @@ class CallbackOriginateStart(BaseEvent):
     _EVENT = 'CALLBACK:ORIGINATE:START'
 
     async def publish(self):
-        self.REDCON.publish(self._EVENT, self.payload)
+        with await self._red_pool as redcon:
+            await redcon.publish(self._EVENT, self.payload)
 
 
 class CallbackOriginateBusy(CallbackOriginateMixin, BaseEvent):
@@ -113,3 +114,23 @@ class CallbackOriginateError(CallbackOriginateMixin, BaseEvent):
 
 class CallbackOriginateUnknownError(CallbackOriginateError):
     EVENT = 'CALLBACK:ORIGINATE:UNKNOWN_ERROR'
+
+
+class CallbackOriginateNoRoute(BaseEvent):
+    EVENT = 'CALLBACK:ORIGINATE:NO_ROUTE'
+
+
+class CallbackOriginateNoDistributor(CallbackOriginateNoRoute):
+    EVENT = 'CALLBACK:ORIGINATE:NO_DISTRIBUTOR'
+    
+
+class CallbackOriginateConnectError(BaseEvent):
+    EVENT = 'CALLBACK:ORIGINATE:CONNECT_ERROR'
+
+
+class CallbackOriginateInvalidGateway(BaseEvent):
+    EVENT = 'CALLBACK:ORIGINATE:INVALID_GATEWAY'
+
+
+class CallbackOriginateNormalTemporaryFailure(BaseEvent):
+    EVENT = 'CALLBACK:ORIGINATE:NORMAL_TEMPORARY_FAILURE'

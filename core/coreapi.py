@@ -216,7 +216,7 @@ class TMAPI(TMAPIBase):
             return [], None
 
         if event == 'ORDER_NO_CARS':
-            return [f'{message}.wav'], None 
+            return [f'{message}.wav'], None
         
         sms_message = ''
 

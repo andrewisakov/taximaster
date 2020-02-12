@@ -1,5 +1,11 @@
-from .base import BaseEvent
 from ..coreapi import TMAPI
+from .base import BaseEvent
+from .orders import OrderSetCreated, OrderNoCarsAborted
+from .callbacks import (
+    CallbackOriginateBusy, CallbackOriginateDelivered,
+    CallbackOriginateError, CallbackOriginateNoanswer,
+    CallbackOriginateUnknownError, CallbackOriginateStart,
+)
 
 
 class OktellMessageMixin:
@@ -45,8 +51,12 @@ class OktellOrderNoCars(OktellMessageMixin, BaseEvent):
     @classmethod
     async def handle(cls, data):
         data = await super().handle(data)
+        data['choice'] = {'1': OrderSetCreated.EVENT,
+                          '9': OrderNoCarsAborted.EVENT}
         data.update(**cls.create_message(data))
         await cls.save(data)
+        originate_start = CallbackOriginateStart(data, cls.RED_POOL)
+        await originate_start.publish()
 
 
 class OktellOrderAccepted(OktellMessageMixin, BaseEvent):
@@ -59,6 +69,8 @@ class OktellOrderAccepted(OktellMessageMixin, BaseEvent):
         message_data = (await cls.create_message(data))
         data.update(**{'message': message_data[0], 'sms': message_data[1]})
         await cls.save(data)
+        originate_start = CallbackOriginateStart(data, cls.RED_POOL)
+        await originate_start.publish()
 
 
 class OktellOrderCrewAtPlace(OktellMessageMixin, BaseEvent):
