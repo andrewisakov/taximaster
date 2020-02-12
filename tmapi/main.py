@@ -11,7 +11,7 @@ LOGGER = logging.getLogger('tmapi')
 
 async def _main(loop):
     LOGGER.debug('Starting service')
-    redpool = await aioredis.create_redis_pool(REDIS)
+    redpool = await aioredis.create_redis_pool(REDIS, maxsize=50)
     loop.pg_pool = await aiopg.create_pool(**DSN)
     TMAPI.HOST, TMAPI.PORT, TMAPI.SOLT, PG_POOL = TMTAPI.get(
         'host'), TMTAPI.get('port'), TMTAPI.get('solt'), loop.pg_ppol
