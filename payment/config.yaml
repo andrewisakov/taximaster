@@ -1,0 +1,46 @@
+imap:
+  user: *****
+  password: *****
+  host: imap.gmail.com
+  port: 993
+  inbox: INBOX
+
+senders:
+  - kitprogrammers@gmail.com
+  - mobilcom36@gmail.com
+  - customprovider@kitps.ru
+  - freontera93@gmail.com
+
+mail:
+  type: object
+  required:
+    - BODY
+    - DATE
+    - FROM
+  properties:
+    BODY:
+      type: object
+      required:
+        - account
+        - amount
+        - prv_id
+      properties:
+        account:
+          type: string
+        amount:
+          type: string
+        prv_id:
+          type: string
+        trm_txn_id:
+          type: string
+        from_amount:
+          type: string
+        trm_id:
+          type: string
+    DATE:
+      type: string
+    FROM:
+      type: string
+
+redis:
+  host: 192.168.222.90
