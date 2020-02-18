@@ -13,11 +13,11 @@ async def _main(loop):
     LOGGER.debug('Starting service')
     redpool = await aioredis.create_redis_pool(REDIS, maxsize=50)
     loop.pg_pool = await aiopg.create_pool(**DSN)
-    TMAPI.HOST, TMAPI.PORT, TMAPI.SOLT, PG_POOL = TMTAPI.get(
-        'host'), TMTAPI.get('port'), TMTAPI.get('solt'), loop.pg_ppol
+    TMAPI.TM_HOST, TMAPI.TM_PORT, TMAPI.TM_SOLT, PG_POOL = TMTAPI.get(
+        'host'), TMTAPI.get('port'), TMTAPI.get('solt'), loop.pg_pool
 
     with await redpool as redcon:
-        channels = await register(loop, redcon, LOGGER)
+        channels = await register(loop, redcon, redpool, LOGGER)
         channels = await asyncio.gather(*channels)
         await unregister(channels, redcon, LOGGER)
 

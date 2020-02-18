@@ -1,14 +1,18 @@
 import asyncio
 import aioredis
+import logging
 
-from .config import LEGAL_SENDERS, REDIS, IMAP
-from .maps import check_mailbox, idle_mailbox
+from .config import REDIS, IMAP
+from .maps import mail_stream, DriverOperCreate
 
 
-@asyncio.coroutine
-def _main(loop):
-    redpool = yield from aioredis.create_redis_pool(REDIS)
-    result = yield from check_mailbox(**IMAP)
+LOGGER = logging.getLogger()
+
+
+async def _main(loop):
+    loop.set_debug(True)
+    DriverOperCreate.RED_POOL = await aioredis.create_redis_pool(REDIS)
+    result = await mail_stream(**IMAP, loop=loop, logger=LOGGER)
     print(result)
 
 

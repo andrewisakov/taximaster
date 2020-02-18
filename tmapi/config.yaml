@@ -14,4 +14,4 @@ redis:
 tmtapi:
   host: 192.168.222.211
   port: 8089
-  solt: 1292
+  solt: "1292"

@@ -27,7 +27,7 @@ marshmallow = "*"
 aiohttp-autoreload = "*"
 jsonschema = "*"
 python-dateutil = "*"
-aioimaplib = "*"
+imapclient = "*"
 
 [requires]
 python_version = "3.7"

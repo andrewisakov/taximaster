@@ -30,8 +30,7 @@ class TMAPIBase:
         async with aiohttp.ClientSession(headers=headers, connector=aiohttp.TCPConnector(ssl=False)) as session:
             method = getattr(session, method)
             async with method(url, data=data, json=json) as r:
-                response = r
-                response = await response.text()
+                response = (await r.json()) or (await r.text())
         return response
 
     @classmethod
@@ -210,14 +209,15 @@ class TMAPI(TMAPIBase):
             cls.LOGGER.error('Отсутсвует описание озвучки!')
             return [], None
 
-        message = cls.ASTERISK_SOUNDS.get(event, cls.ASTERISK_SOUNDS.MESSAGE_TYPE)
+        message = cls.ASTERISK_SOUNDS.get(
+            event, cls.ASTERISK_SOUNDS.MESSAGE_TYPE)
         if not message:
             cls.LOGGER.error('Отсутствует озвучка для события %s!', event)
             return [], None
 
         if event == 'ORDER_NO_CARS':
             return [f'{message}.wav'], None
-        
+
         sms_message = ''
 
         mark = data.get('car_mark', '').strip()
@@ -231,11 +231,12 @@ class TMAPI(TMAPIBase):
         cashless = data.get('client_id', 0) != 0
 
         mark = mark.split(' ')[0]
-        mark_sound = cls.ASTERISK_SOUNDS.get(mark, cls.ASTERISK_SOUNDS.MARK_TYPE)
+        mark_sound = cls.ASTERISK_SOUNDS.get(
+            mark, cls.ASTERISK_SOUNDS.MARK_TYPE)
         if not mark_sound:
             cls.LOGGER.warning('Отсутсвует озвучка для "%s"!', mark)
         sms_message += f'{mark}'
-        
+
         model_sound = []
         if mark.upper().split(' ')[0] == 'ВАЗ':
             sms_message += f' {model}\n'
@@ -260,23 +261,24 @@ class TMAPI(TMAPIBase):
 
         color_sound = ''
         if color:
-            color_sound = cls.ASTERISK_SOUNDS.get(color, cls.ASTERISK_SOUNDS.COLOR_TYPE)
+            color_sound = cls.ASTERISK_SOUNDS.get(
+                color, cls.ASTERISK_SOUNDS.COLOR_TYPE)
             sms_message += f'{color}\n'
         if not color_sound:
             cls.LOGGING.warning('Отсутствует озвучка для "%s"!', color)
             message = message.replace('&tmColor', '')
-        
+
         gosn_sound = []
         if gosn:
             sms_message += f'{gosn}\n'
             gosn = (gosn[:len(gosn) - 2], gosn[-2:])
             for gn in gosn:
-                if len(gn) == 1: # 100
+                if len(gn) == 1:  # 100
                     gosn_sound.append(f'tm{gn}00')
                 else:
-                    if gn[0] == '1': # 10..19
+                    if gn[0] == '1':  # 10..19
                         gosn_sound.append(f'tm{gn}')
-                    elif gn[0] == '0': # 0..9
+                    elif gn[0] == '0':  # 0..9
                         if len(gosn) == 3 and gn[1] != '0':
                             gosn_sound.append(f'tm{gn[1]}')
                         else:
@@ -289,7 +291,7 @@ class TMAPI(TMAPIBase):
             cls.LOGGER.warinig('Отсутсвует госномер для car_id: %s', car_id)
             message = message.replace('&tmgos_nomer', '')
         gosn_sound = '&'.join(gosn_sound)
-        
+
         minutes_timecount = []
         if driver_timecount and driver_timecount > 0:
             sms_message += f'{driver_timecount} мин\n'
@@ -305,16 +307,16 @@ class TMAPI(TMAPIBase):
             sms_message += '5-7 мин\n'
             minutes_timecount.append('tm5')
             minutes_timecount.append('tm7')
-        
+
         minutes_timecount = '&'.join(minutes_timecount)
 
         message = message.replace('$mark', mark_sound)\
-                        .replace('$model', model_sound)\
-                        .replace('$color', color_sound)\
-                        .replace('$gosnumber', gosn_sound)\
-                        .replace('$minutes', minutes_timecount)\
-                        .replace('&&', '&')\
-                        .split('&')
+            .replace('$model', model_sound)\
+            .replace('$color', color_sound)\
+            .replace('$gosnumber', gosn_sound)\
+            .replace('$minutes', minutes_timecount)\
+            .replace('&&', '&')\
+            .split('&')
         message = [f'{m}.wav' for m in message if m]
         sms_message += 'Расчёт по таксометру.'
         cls.LOGGER.info('SMS: %s', sms_message)
