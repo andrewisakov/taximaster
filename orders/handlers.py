@@ -16,5 +16,5 @@ from core.events.oktell import (
     OktellOrderCrewAtPlace,
     OktellOrderNoCars
 )
-
+from .config import CALLBACK_START, CALLBACK_STOP
 from .database import AsteriskSounds
