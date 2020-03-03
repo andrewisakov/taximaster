@@ -10,8 +10,8 @@ from .callbacks import (
 
 class OktellMessageMixin:
     @classmethod
-    async def create_message(cls, data):
-        return (await TMAPI.create_message(cls.EVENT.split(':')[1], data))
+    def create_message(cls, data):
+        return TMAPI.create_message(cls.EVENT.split(':')[1], data)
 
 
 class OktellOrderCreated(BaseEvent):
@@ -51,8 +51,10 @@ class OktellOrderNoCars(OktellMessageMixin, BaseEvent):
     @classmethod
     async def handle(cls, data):
         data = await super().handle(data)
-        data['choice'] = {'1': OrderSetCreated.EVENT,
-                          '9': OrderNoCarsAborted.EVENT}
+        data['choice'] = {1: OrderSetCreated.EVENT,
+                          6: OrderNoCarsAborted.EVENT}
+        data['timeout'] = 5000
+        data['tries'] = 3
         data.update(**cls.create_message(data))
         await cls.save(data)
         originate_start = CallbackOriginateStart(data, cls.RED_POOL)
@@ -66,8 +68,7 @@ class OktellOrderAccepted(OktellMessageMixin, BaseEvent):
     @classmethod
     async def handle(cls, data):
         data = await super().handle(data)
-        message_data = (await cls.create_message(data))
-        data.update(**{'message': message_data[0], 'sms': message_data[1]})
+        data.update(**cls.create_message(data))
         await cls.save(data)
         originate_start = CallbackOriginateStart(data, cls.RED_POOL)
         await originate_start.publish()

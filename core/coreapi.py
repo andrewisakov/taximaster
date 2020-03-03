@@ -23,14 +23,17 @@ class TMAPIBase:
                    'change_order_state']
 
     @classmethod
-    async def _request(cls, method, url, headers, data=None, json=None):
+    async def _request(cls, method, url, headers, data=None, json_data=None):
         method = method.lower()
         response = None
 
         async with aiohttp.ClientSession(headers=headers, connector=aiohttp.TCPConnector(ssl=False)) as session:
             method = getattr(session, method)
-            async with method(url, data=data, json=json) as r:
-                response = (await r.json()) or (await r.text())
+            async with method(url, data=data, json=json_data) as r:
+                try:
+                    response = await r.json()
+                except Exception as e:
+                    response = await r.text()
         return response
 
     @classmethod
@@ -204,7 +207,7 @@ class TMAPI(TMAPIBase):
                         return r[1]
 
     @classmethod
-    async def create_message(cls, event, data):
+    def create_message(cls, event, data):
         if not cls.ASTERISK_SOUNDS:
             cls.LOGGER.error('Отсутсвует описание озвучки!')
             return [], None
@@ -321,4 +324,4 @@ class TMAPI(TMAPIBase):
         sms_message += 'Расчёт по таксометру.'
         cls.LOGGER.info('SMS: %s', sms_message)
         cls.LOGGER.info('CALL:%s', message)
-        return message, sms_message
+        return {'message': message, 'sms': sms_message}

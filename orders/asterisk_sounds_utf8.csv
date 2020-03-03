@@ -188,8 +188,8 @@
 213;Датсун;;0;0;;
 214;Тёмно-коричневый;tmdark_brown;1;0;;
 215;ЗАЗ;tmZAZ-Sens;0;0;;
-216;order_accepted;ru/tmVas_privetstvuet_sluzba_taxi&ru/tmMashina_vyehala_k_vam&$mark&$model&ru/tmColor&$color&ru/tmgos_nomer&$gosnumber&ru/tmMashina_podjedet_k_vam_cherez&$minutes&ru/tmminut_;4;0;;
-198;order_driver_assigned;ru/tmVas_privetstvuet_sluzba_taxi&ru/tmMashina_vyehala_k_vam&$mark&$model&ru/tmColor&$color&ru/tmgos_nomer&$gosnumber&ru/tmMashina_podjedet_k_vam_cherez&$minutes&ru/tmminut_;4;0;;
-199;order_crew_at_place;ru/tmVas_privetstvuet_sluzba_taxi&ru/tmMashina_podjehala_k_vam&$mark&$model&ru/tmColor&$color&ru/tmgos_nomer&$gosnumber&ru/tmPlease_go_out;4;0;;
-200;order_client_gone;ru/tmVas_privetstvuet_sluzba_taxi&ru/tmMashina_podjehala_k_vam&$mark&$model&ru/tmColor&$color&ru/tmgos_nomer&$gosnumber&ru/tmPlease_go_out;4;0;;
-201;order_no_cars;ru/tmno_cars;4;0;;
+216;order_accepted;tmVas_privetstvuet_sluzba_taxi&tmMashina_vyehala_k_vam&$mark&$model&tmColor&$color&tmgos_nomer&$gosnumber&tmMashina_podjedet_k_vam_cherez&$minutes&tmminut_;4;0;;
+198;order_driver_assigned;tmVas_privetstvuet_sluzba_taxi&tmMashina_vyehala_k_vam&$mark&$model&tmColor&$color&tmgos_nomer&$gosnumber&tmMashina_podjedet_k_vam_cherez&$minutes&tmminut_;4;0;;
+199;order_crew_at_place;tmVas_privetstvuet_sluzba_taxi&tmMashina_podjehala_k_vam&$mark&$model&tmColor&$color&tmgos_nomer&$gosnumber&tmPlease_go_out;4;0;;
+200;order_client_gone;tmVas_privetstvuet_sluzba_taxi&tmMashina_podjehala_k_vam&$mark&$model&tmColor&$color&tmgos_nomer&$gosnumber&tmPlease_go_out;4;0;;
+201;order_no_cars;tmno_cars;4;0;;
