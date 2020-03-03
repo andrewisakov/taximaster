@@ -1,6 +1,6 @@
 imap:
-  user: *****
-  password: *****
+  user: narodnoetaksi
+  password: yfhjlyjtnfrcb
   host: imap.gmail.com
   port: 993
   inbox: INBOX
