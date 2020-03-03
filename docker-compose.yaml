@@ -5,27 +5,17 @@ services:
     image: redis
     ports:
       - 6379:9379
-  postgres:
-    hostname: postgres
-    image: postgres:10
-    ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
   order_tracker:
     build:
       context: ./
       dockerfile: ./orders/dockerfile
     container_name: order_tracker
     links:
-      - postgres
       - redis
+      - tmapi_proxy
     depends_on:
-      - postgres
       - redis
-    environment:
-      WAIT_HOSTS: postgres:5432
+      - tmapi_proxy
     hostname: orders
     command: >
       pipenv run python run_orders.py
@@ -35,13 +25,9 @@ services:
       dockerfile: ./tmapi/dockerfile
     container_name: tmapi_proxy
     links:
-      - postgres
       - redis
     depends_on:
-      - postgres
       - redis
-    environment:
-      WAIT_HOSTS: postgres:5432
     hostname: tmapi_proxy
     command: >
       pipenv run python run_tmapi.py
@@ -54,10 +40,41 @@ services:
     container_name: oktell_proxy
     links:
       - redis
+      - tmapi_proxy
     ports:
       - 24055:8080
     depends_on:
       - redis
+      - tmapi_proxy
     hostname: oktell_proxy
     command: >
       pipenv run python run_oktell.py
+  payments:
+    build:
+      context: ./
+      dockerfile: ./payment/dockerfile
+    container_name: payment
+    links:
+      - redis
+      - tmapi_proxy
+    depends_on:
+      - redis
+      - tmapi_proxy
+    hostname: payment
+    command: >
+      pipenv run python run_payment.py
+
+  sms:
+    build:
+      context: ./
+      dockerfile: ./sms/dockerfile
+    container_name: sms
+    links:
+      - redis
+      - tmapi_proxy
+    depends_on:
+      - redis
+      - tmapi_proxy
+    hostname: sms
+    command: >
+      pipenv run python run_sms.py
