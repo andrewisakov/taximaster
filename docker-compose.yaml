@@ -76,5 +76,5 @@ services:
       - redis
       - tmapi_proxy
     hostname: sms
-    comman: >
+    command: >
       pipenv run python run_sms.py
