@@ -48,7 +48,7 @@ async def get_message(imap, msg_id, logger):
 
 async def mail_stream(host, port, user, password, inbox, loop, logger):
     from_id = None
-    with IMAPClient(host) as imap:
+    with IMAPClient(host, port) as imap:
         resp = imap.login(user, password)
         if '(Success)' not in resp.decode():
             logger.error('Not logged: %s', resp)
