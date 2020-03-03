@@ -1,0 +1,15 @@
+route: kts
+dsn:
+  database: "50eb8a3c0e444176ea5139ad5de941cd79daa8b9"
+  user: postgres
+  password: postgres
+  host: 192.168.222.179
+  port: 5432
+  minsize: 1
+  maxsize: 50
+
+redis:
+  host: 192.168.222.90
+  channels:
+    - "OKTELL:ORDER_ACCEPTED"
+    - "OKTELL:NO_CARS_ABORTED"
