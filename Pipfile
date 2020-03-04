@@ -28,7 +28,6 @@ aiohttp-autoreload = "*"
 jsonschema = "*"
 python-dateutil = "*"
 imapclient = "*"
-thread = "*"
 
 [requires]
 python_version = "3.7"

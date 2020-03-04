@@ -92,7 +92,7 @@ class TMAPIBase:
         headers = {'Signature': cls._signature(json.dumps(data)),
                    'Content-Type': cls.CONTENT_TYPE_APP_JSON,
                    }
-        response = await cls._request(method.lower(), url, headers, json=data)
+        response = await cls._request(method.lower(), url, headers, json_data=data)
         return response
 
 

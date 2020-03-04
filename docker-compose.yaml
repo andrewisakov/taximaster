@@ -5,10 +5,13 @@ services:
     image: redis
     ports:
       - 6379:9379
+
   order_tracker:
     build:
       context: ./
       dockerfile: ./orders/dockerfile
+    volumes:
+      - /var/log:/orders/logs
     container_name: order_tracker
     links:
       - redis
@@ -19,10 +22,13 @@ services:
     hostname: orders
     command: >
       pipenv run python run_orders.py
+
   tmapi_proxy:
     build:
       context: ./
       dockerfile: ./tmapi/dockerfile
+    volumes:
+      - /var/log:/tmapi/logs
     container_name: tmapi_proxy
     links:
       - redis
@@ -33,10 +39,13 @@ services:
       pipenv run python run_tmapi.py
     ports:
       - 8080
+
   oktell_proxy:
     build:
       context: ./
       dockerfile: ./oktell/dockerfile
+    volumes:
+      - /var/log:/oktell/logs
     container_name: oktell_proxy
     links:
       - redis
@@ -49,10 +58,13 @@ services:
     hostname: oktell_proxy
     command: >
       pipenv run python run_oktell.py
+
   payments:
     build:
       context: ./
       dockerfile: ./payment/dockerfile
+    volumes:
+      - /var/log:/payment/logs
     container_name: payment
     links:
       - redis
@@ -68,6 +80,8 @@ services:
     build:
       context: ./
       dockerfile: ./sms/dockerfile
+    volumes:
+      - /var/log:/sms/logs
     container_name: sms
     links:
       - redis
