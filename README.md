@@ -1,21 +1,21 @@
 # taximaster
 
-# РАЗВЁРТЫВАНИЕ
+## РАЗВЁРТЫВАНИЕ
 Разертывание производилось на debian-10
 - sudo apt install docker-compose docker
 - sudo systemctl start docker
 - git clone https://github.com/andrewisakov/taximaster
 
-# СБОРКА
+## СБОРКА
 - cd taximaster
 - docker-compose build
 
-# ЗАПУСК
+## ЗАПУСК
 - docker-compose up -d  (запуск)
 - docker-compose logs (посмотреть не упало ли что и последние строки логов)
 
-# ОСТАНОВ
+## ОСТАНОВ
 - docker-compose down
 
-# ЛОГИ
+## ЛОГИ
 - /var/log
