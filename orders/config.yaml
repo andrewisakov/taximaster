@@ -21,7 +21,8 @@ databases:
     maxsize: 10
 
 redis:
-  host: 192.168.222.90
+  # host: 192.168.222.90
+  host: redis
   maxsize: 50
 
 callback_stop:
