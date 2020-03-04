@@ -5,6 +5,9 @@ services:
     image: redis
     ports:
       - 6379:9379
+    sysctls:
+      - net.core.somaxconn=4096
+      - vm.overcommit_memory=1
 
   order_tracker:
     build:
