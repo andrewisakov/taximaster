@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 **/logs/**
 payment/config.yaml
+.vscode/settings.json

@@ -16,6 +16,7 @@ async def save(message):
 
 
 async def check_mailbox(imap,
+                        logger,
                         date_since=None,
                         from_id=None):
 
@@ -27,7 +28,11 @@ async def check_mailbox(imap,
         since = f'SINCE {date_since}'
     else:
         since = f'UID {from_id+1}:*'
-    ids = imap.search(since)
+    try:
+        ids = imap.search(since)
+    except Exception as e:
+        logger.error(str(e))
+        ids = []
 
     return ids
 
@@ -39,6 +44,7 @@ async def get_message(imap, msg_id, logger):
         header = parse_header(header[msg_id][b'BODY[HEADER]'])
         body = parse_body(body[msg_id][b'BODY[TEXT]'])
         if header['FROM'] in LEGAL_SENDERS:
+            logger.debug('Got message %s', str(header))
             oper_create = DriverOperCreate(payload=dict(**header, **body))
             await oper_create.publish()
             return msg_id
@@ -57,7 +63,7 @@ async def mail_stream(host, port, user, password, inbox, loop, logger):
         logger.debug('Logged: %s', resp)
         imap.select_folder(inbox, readonly=True)
         while 1:
-            ids = await check_mailbox(imap, from_id=from_id)
+            ids = await check_mailbox(imap, logger, from_id=from_id)
             messages = [get_message(imap, i, logger=logger)
                         for i in ids if i > (from_id if from_id else 0)]
 

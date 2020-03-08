@@ -3,7 +3,7 @@ import sys
 
 SERVICE_ROOT_DIR = os.path.dirname(__file__)
 sys.path.append(SERVICE_ROOT_DIR)
-REDIS_HOST = 'redis://192.168.222.90'
+REDIS_HOST = 'redis://192.168.222.21'
 
 TM_HOST = '192.168.222.211'
 TM_PORT = 8089

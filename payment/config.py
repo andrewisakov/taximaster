@@ -14,7 +14,7 @@ TME_DB = CONFIG.get('databases', {}).get('tme_db', {})
 IMAP = CONFIG.get('imap', {})
 LEGAL_SENDERS = CONFIG.get('senders', {})
 MAIL_SCHEMA = CONFIG.get('mail')
-LOGGER = _logger.rotating_log(
-    os.path.join(
-        SERVICE_ROOT_DIR, 'logs/payment.log',
-    ), 'mayment')
+# LOGGER = _logger.rotating_log(
+#     os.path.join(
+#         SERVICE_ROOT_DIR, 'logs/payments.log',
+#     ), 'payment')

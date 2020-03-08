@@ -1,26 +1,27 @@
 version: "3.3"
 services:
-  redis:
-    hostname: redis
-    image: redis
-    ports:
-      - 6379:9379
-    sysctls:
-      - net.core.somaxconn=4096
-      # - vm.overcommit_memory=1
+  # redis:
+  #   hostname: redis
+  #   image: redis
+
+  #   ports:
+  #     - 0.0.0.0:6379:9379
+  #   sysctls:
+  #     - net.core.somaxconn=4096
+  # - vm.overcommit_memory=1
 
   order_tracker:
     build:
       context: ./
       dockerfile: ./orders/dockerfile
     volumes:
-      - /var/log:/orders/logs
+      - /var/log:/orders/orders/logs
     container_name: order_tracker
     links:
-      - redis
+      # - redis
       - tmapi_proxy
     depends_on:
-      - redis
+      # - redis
       - tmapi_proxy
     hostname: orders
     command: >
@@ -31,12 +32,12 @@ services:
       context: ./
       dockerfile: ./tmapi/dockerfile
     volumes:
-      - /var/log:/tmapi/logs
+      - /var/log:/tmapi/tmapi/logs
     container_name: tmapi_proxy
-    links:
-      - redis
-    depends_on:
-      - redis
+    # links:
+    #   - redis
+    # depends_on:
+    #   - redis
     hostname: tmapi_proxy
     command: >
       pipenv run python run_tmapi.py
@@ -46,17 +47,17 @@ services:
   oktell_proxy:
     build:
       context: ./
-      dockerfile: ./oktell/dockerfile
+      dockerfile: ./oktell/oktell/dockerfile
     volumes:
       - /var/log:/oktell/logs
     container_name: oktell_proxy
     links:
-      - redis
+      # - redis
       - tmapi_proxy
     ports:
       - 24055:8080
     depends_on:
-      - redis
+      # - redis
       - tmapi_proxy
     hostname: oktell_proxy
     command: >
@@ -67,15 +68,16 @@ services:
       context: ./
       dockerfile: ./payment/dockerfile
     volumes:
-      - /var/log:/payment/logs
+      - /var/log:/payment/payment/logs
     container_name: payment
     links:
-      - redis
+      # - redis
       - tmapi_proxy
     depends_on:
-      - redis
+      # - redis
       - tmapi_proxy
     hostname: payment
+    restart: on-failure
     command: >
       pipenv run python run_payment.py
 
@@ -84,13 +86,13 @@ services:
       context: ./
       dockerfile: ./sms/dockerfile
     volumes:
-      - /var/log:/sms/logs
+      - /var/log:/sms/sms/logs
     container_name: sms
     links:
-      - redis
+      # - redis
       - tmapi_proxy
     depends_on:
-      - redis
+      # - redis
       - tmapi_proxy
     hostname: sms
     command: >
