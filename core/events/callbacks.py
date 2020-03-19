@@ -10,15 +10,27 @@ class CallbackOriginateMixin:
     @classmethod
     async def block_last_event(cls, data):
         order_id = data.get('order_id')
+        cls.LOGGER.debug('Get blocked event for %s', order_id)
+        last_event = None
         async with cls.PG_POOL.acquire() as pgcon:
             async with pgcon.cursor() as c:
-                await c.execute(
-                    ('select event from order_events '
-                     'where order_id=%(order_id)s '
-                     'order by timestamp desc limit 1;'),
-                    order_id)
-                last_event = await c.fetchone()
-                return last_event in cls.CALLBACK_STOP
+                try:
+                    await c.execute(
+                        ('select event from order_events '
+                        'where order_id=%(order_id)s '
+                        'order by timestamp desc limit 1;'),
+                        order_id)
+                    last_event = await c.fetchall()
+                except Exception as e:
+                    cls.LOGGER.exception(str(e))
+                else:
+                    if last_event:
+                        last_event = last_event[0]
+                        cls.LOGGER.debug('Last event for %s: %s', order_id, last_event)
+                    else:
+                        last_event = None
+                    
+        return last_event in cls.CALLBACK_STOP
 
     @classmethod
     async def set_call_state(cls, data):
@@ -132,5 +144,5 @@ class CallbackOriginateInvalidGateway(BaseEvent):
     EVENT = 'CALLBACK:ORIGINATE:INVALID_GATEWAY'
 
 
-class CallbackOriginateNormalTemporaryFailure(BaseEvent):
+class CallbackOriginateNormalTemporaryFailure(CallbackOriginateError):
     EVENT = 'CALLBACK:ORIGINATE:NORMAL_TEMPORARY_FAILURE'

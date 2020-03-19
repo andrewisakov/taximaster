@@ -135,16 +135,16 @@ class Channels:
             self.LOGGER.debug('Channel %s registered.', channel)
 
     def unregister(self, channel: Channel):
-        for d in self.CHANNELS.keys():
-            self.CHANNELS[d].discard(channel)
+        for d in self._channels.keys():
+            self._channels[d].discard(channel)
             self.LOGGER.debug('Channel %s unregistered.', channel)
 
     def send_sms(self, message, phone):
         distributor = self.get_distributor(phone)
         self.LOGGER.debug('Sending SMS %s:%s throw %s.', phone, message, distributor)
-        channel = self.CHANNELS[distributor].popleft()
+        channel = self._channels[distributor].popleft()
         result = channel.send_sms(phone, message)
-        self.CHANNELS[distributor].append(channel)
+        self._channels[distributor].append(channel)
         self.LOGGER.debug(
             'Send SMS %s:%s result %s', phone, message, result)
         return result

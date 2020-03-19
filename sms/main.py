@@ -2,6 +2,7 @@ import redis
 import threading
 import logging
 from psycopg2.pool import ThreadedConnectionPool
+from core.events.oktell import OktellOrderAccepted
 from .kts.channels import Channel, Channels
 from .config import REDIS, CHANNELS, DSN
 
@@ -81,8 +82,11 @@ def main():
     for event in rs.listen():
         LOGGER.debug('Received %s', event)
         if event['type'] == 'message':
+            LOGGER.debug('Got message: %s', event)
+            data = OktellOrderAccepted.handle(event['data'])
+
             _channel = threading.Thread(
-                channels.send_sms, (event['data']['message'], event['data']['phones'][0]))
+                channels.send_sms, (data['message'], data['phones'][0]))
             _channel.start()
             LOGGER.debug('%s: %s', _channel, event)
 

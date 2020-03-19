@@ -10,6 +10,7 @@ pylama = "*"
 aiohttp-autoreload = "*"
 bpython = "*"
 isort = "*"
+rope = "*"
 
 [packages]
 redis = "*"

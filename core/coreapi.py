@@ -208,6 +208,7 @@ class TMAPI(TMAPIBase):
 
     @classmethod
     def create_message(cls, event, data):
+        cls.LOGGER.debug('Got %s: %s', event, data)
         if not cls.ASTERISK_SOUNDS:
             cls.LOGGER.error('Отсутсвует описание озвучки!')
             return [], None
@@ -268,7 +269,7 @@ class TMAPI(TMAPIBase):
                 color, cls.ASTERISK_SOUNDS.COLOR_TYPE)
             sms_message += f'{color}\n'
         if not color_sound:
-            cls.LOGGING.warning('Отсутствует озвучка для "%s"!', color)
+            cls.LOGGER.warning('Отсутствует озвучка для "%s"!', color)
             message = message.replace('&tmColor', '')
 
         gosn_sound = []

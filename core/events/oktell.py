@@ -105,6 +105,7 @@ class OktellOrderClientFuck(BaseEvent):
 
 class OktellOrderClientGone(OktellMessageMixin, BaseEvent):
     EVENT = 'OKTELL:ORDER_CLIENT_GONE'
+    ENRICH_DATA = True
 
     @classmethod
     async def handle(cls, data):

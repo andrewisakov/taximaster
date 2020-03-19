@@ -45,12 +45,12 @@ class OrderEvent(BaseHandler):
 
     @classmethod
     async def handle(cls, data, app, logger):
-        await super().handle(data, app, logger)
         event = 'OKTELL:{}'.format(data['event'].upper())
         message = {
             'order_id': data['order_id'],
-            'phones': (data['phone1'], ),
+            'phones': (data['phone1'][-10:], ),
         }
+        await super().handle(data, app, logger)
         await cls.publish(event, message, app, logger)
 
 
@@ -61,7 +61,7 @@ class TMABConnect(BaseHandler):
         event = 'OKTELL:{}'.format(data['event'])
         message = {
             'order_id': data['order_id'],
-            'phones': (data['phone1'], data['phone2'], ),
+            'phones': (data['phone1'][-10:], data['phone2'][-10:], ),
         }
         await cls.publish(event, message, app, logger)
 

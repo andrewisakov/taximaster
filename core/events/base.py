@@ -72,8 +72,9 @@ class BaseEvent:
                         'where o.id=%(order_id)s;'),
                         {'order_id': data['order_id']})
                     r = await c.fetchone()
-                    order_data = {cn.name :r[ix] for ix, cn in enumerate(c.description)}
-                    data.update(**order_data)
+                    if r:
+                        order_data = {cn.name :r[ix] for ix, cn in enumerate(c.description)}
+                        data.update(**order_data)
         return data
 
 

@@ -47,15 +47,15 @@ services:
   oktell_proxy:
     build:
       context: ./
-      dockerfile: ./oktell/oktell/dockerfile
+      dockerfile: ./oktell/dockerfile
     volumes:
-      - /var/log:/oktell/logs
+      - /var/log:/oktell/oktell/logs
     container_name: oktell_proxy
     links:
       # - redis
       - tmapi_proxy
     ports:
-      - 24055:8080
+      - 24055:24055
     depends_on:
       # - redis
       - tmapi_proxy

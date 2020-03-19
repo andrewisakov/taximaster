@@ -7,6 +7,7 @@ from aiohttp_apispec import docs, querystring_schema, validation_middleware, set
 
 import settings
 from core.parsers import request_parser
+from .config import PORT
 from .handlers import select_handlers
 
 LOGGER = logging.getLogger()
@@ -57,7 +58,7 @@ def main():
     #                     request_data_name='validated_data',
     #                     title='My Documentation',
     #                     version='v1',
-    #                     url='/execsvcscript')    
+    #                     url='/execsvcscript')
     app.on_startup.append(create_engines)
     app.on_cleanup.append(dispose_engines)
-    web.run_app(app)
+    web.run_app(app, port=PORT)
