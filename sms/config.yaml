@@ -8,6 +8,15 @@ dsn:
   minsize: 1
   maxsize: 50
 
+tme_db:
+  database: "tme_db"
+  user: postgres
+  password: postgres
+  host: 192.168.222.179
+  port: 5432
+  minsize: 1
+  maxsize: 50
+
 redis:
   host: 192.168.222.21
   # host: redis

@@ -29,27 +29,28 @@ class Channel:
     def __repr__(self):
         return f'{self._address}:{self._channel}'
 
-    @property
     def url(self, cmd):
         return 'http://%s/%s' % (self._address, cmd)
 
     def request(self, cmd, data=None):
+        time_ = time.time()
+        url = self.url(cmd)
         self.auth_handler.add_password(
-            realm=self._realm, uri=self.url(cmd), user=self._login, passwd=self._passwd)
+            realm=self._realm, uri=url, user=self._login, passwd=self._passwd)
         data = urllib.parse.urlencode(data).encode('utf-8') if data else data
-        self.LOGGER.debug('Request %s for %s.', self.url(cmd), data)
+        self.LOGGER.debug('Request %s for %s.', url, data)
         opener = urllib.request.build_opener(self.auth_handler)
         urllib.request.install_opener(opener)
-        r = urllib.request.Request(self.url(cmd))
+        r = urllib.request.Request(url)
         try:
             o = urllib.request.urlopen(r, data, timeout=self._timeout)
             result = urllib.parse.unquote(o.read().decode('utf-8'))
-            self.LOGGER.debug('Response %s from %s', result, self.url(cmd))
+            self.LOGGER.debug('Response %s from %s', result, url)
         except Exception as e:
             result = "{'message': 'error', 'error': '%s', 'address': %s}" % (
                 e, self._address)
-            self.LOGGER.error('Response %s from %s', result, self.url(cmd))
-
+            self.LOGGER.error('Response %s from %s', result, url)
+        self.LOGGER.debug(f'Request to %s completed in %s', url, time.time()-time_)
         return result
 
     # def config(self, channel):
@@ -80,14 +81,16 @@ class Channel:
         return 0
 
     def send_sms(self, phone, message, is_flush=False):
+        phone = phone[-10:]
+        if len(phone) != 10:
+            return 'Need 10 digits phone number!'
         self.LOGGER.debug('Send SMS %s:%s throw %s', phone, message, self._address)
-        time_ = time.time()
         result = self.request(cmd='sendsms',
                               data={
                                   'from': FROM,
                                   'ch': self._channel,
                                   'is_flush': 1 if is_flush else 0,
-                                  'phone': phone,
+                                  'phone': f'+7{phone}',
                                   'text': message,
                               })
         return result

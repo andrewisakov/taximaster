@@ -1,14 +1,38 @@
+import json
 import redis
 import threading
 import logging
 from psycopg2.pool import ThreadedConnectionPool
 from core.events.oktell import OktellOrderAccepted
+from core.coreapi import TMAPI
 from .kts.channels import Channel, Channels
-from .config import REDIS, CHANNELS, DSN
+from .config import REDIS, CHANNELS, DSN, TME_DB
+from orders.database import AsteriskSounds
 
 
 LOGGER = logging.getLogger()
 
+
+def enrich_data(data):
+    with TMAPI.PG_POOL.getconn() as pgcon:
+        with pgcon.cursor() as c:
+            c.execute((
+                'select o.driver_timecount, '
+                'o.discountedsumm, o.clientid as client_id, '
+                'o.driverid, o.cashless, o.state, o.phone, '
+                'cr.gosnumber, cr.color as car_color, '
+                'cr.mark as car_mark, coalesce(cr.model, \'\') as car_model, '
+                'cr.id as car_id, o.source_time '
+                'from orders o '
+                'join crews cw on (cw.id=o.crewid) '
+                'join cars cr on (cr.id=cw.carid) '
+                'where o.id=%(order_id)s;'),
+                {'order_id': data['order_id']})
+            r = c.fetchone()
+            if r:
+                order_data = {cn.name :r[ix] for ix, cn in enumerate(c.description)}
+                data.update(**order_data)
+    return data
 
 def get_distributor(phone, db):
     LOGGER.debug(phone)
@@ -72,7 +96,10 @@ def register_channels(pg_pool):
 
 
 def main():
+    TMAPI.LOGGER = LOGGER
+    TMAPI.ASTERISK_SOUNDS = AsteriskSounds()
     pg_pool = ThreadedConnectionPool(*DSN)
+    TMAPI.PG_POOL = ThreadedConnectionPool(*TME_DB)
     channels = register_channels(pg_pool)
     redpool = redis.ConnectionPool(host=REDIS)
     r = redis.Redis(connection_pool=redpool)
@@ -83,10 +110,14 @@ def main():
         LOGGER.debug('Received %s', event)
         if event['type'] == 'message':
             LOGGER.debug('Got message: %s', event)
-            data = OktellOrderAccepted.handle(event['data'])
+            channel = event['channel'].decode().split(':')[1]
+            data = json.loads(event['data'])
+            data = enrich_data(data)
+            phones = data['phones'][0]
+            data = TMAPI.create_message(channel, data)
 
             _channel = threading.Thread(
-                channels.send_sms, (data['message'], data['phones'][0]))
+                target=channels.send_sms, args=(data['sms'], phones))
             _channel.start()
             LOGGER.debug('%s: %s', _channel, event)
 

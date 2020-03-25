@@ -3,8 +3,8 @@ import aioredis
 import asyncio
 import aiopg
 from .handlers import register, unregister, TMAPI
-from .config import DSN, REDIS, CALLBACK_STOP, TMTAPI, TME_DB
-from .database import AsteriskSounds
+from .config import DSN, REDIS, CALLBACK_STOP, TMTAPI, TME_DB, INIT
+from .database import AsteriskSounds, init, TABLES
 
 
 LOGGER = logging.getLogger()
@@ -12,6 +12,7 @@ LOGGER = logging.getLogger()
 
 async def _main(loop):
     LOGGER.debug('Starting service')
+    result = init(INIT, DSN, TABLES)
     redpool = await aioredis.create_redis_pool(REDIS, maxsize=50)
     loop.pg_pool = await aiopg.create_pool(**DSN)
     TMAPI.TM_HOST, TMAPI.TM_PORT, TMAPI.TM_SOLT, TMAPI.PG_POOL, \

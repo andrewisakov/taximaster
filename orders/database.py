@@ -18,8 +18,6 @@ TABLES = {
     }
 }
 
-result = init(INIT, DSN, TABLES)
-
 
 class AsteriskSounds:
     MARK_TYPE = 0

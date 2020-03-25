@@ -12,6 +12,18 @@ REDIS = CONFIG.get('redis', {})
 CHANNELS = REDIS.get('channels', [])
 REDIS = REDIS.get('host')
 DSN = CONFIG.get('dsn')
+TME_DB = CONFIG.get('tme_db')
+
 DSN = (DSN.get('minsize'), DSN.get('maxsize'), 'postgres://{}:{}@{}/{}'.format(
     DSN.get('user'), DSN.get('password'), DSN.get('host'), DSN.get('database')
 ))
+TME_DB = (
+    TME_DB.get('minsize', 1),
+    TME_DB.get('maxsize', 10), 
+    'postgres://{}:{}@{}/{}'.format(
+        TME_DB.get('user', 'postgres'), 
+        TME_DB.get('password', 'postgres'), 
+        TME_DB.get('host', 'localhost'), 
+        TME_DB.get('database', 'tme_db')
+    )
+)
