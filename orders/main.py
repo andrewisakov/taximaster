@@ -26,7 +26,7 @@ async def _main(loop):
         for channel in channels:
             channel.CALLBACK_STOP = CALLBACK_STOP
         channels = await asyncio.gather(*channels)
-        await unregister(channels)
+        await unregister(channels, redcon, LOGGER)
 
 
 def main():

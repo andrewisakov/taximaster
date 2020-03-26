@@ -18,4 +18,4 @@
 - docker-compose down
 
 ## ЛОГИ
-- /var/logsudo apt -y install g++ postgresql-server-dev-all libffi6 libffi-dev
+- /var/log
