@@ -24,6 +24,9 @@ services:
       # - redis
       - tmapi_proxy
     hostname: orders
+    restart: on-failure
+    environment:
+      - PYTHONASYNCIODEBUG=1 
     command: >
       pipenv run python run_orders.py
 
@@ -39,10 +42,13 @@ services:
     # depends_on:
     #   - redis
     hostname: tmapi_proxy
-    command: >
-      pipenv run python run_tmapi.py
+    restart: on-failure
+    environment:
+      - PYTHONASYNCIODEBUG=1 
     ports:
       - 8080
+    command: >
+      pipenv run python run_tmapi.py
 
   oktell_proxy:
     build:
@@ -60,6 +66,9 @@ services:
       # - redis
       - tmapi_proxy
     hostname: oktell_proxy
+    restart: on-failure
+    environment:
+      - PYTHONASYNCIODEBUG=1 
     command: >
       pipenv run python run_oktell.py
 
@@ -78,6 +87,8 @@ services:
       - tmapi_proxy
     hostname: payment
     restart: on-failure
+    environment:
+      - PYTHONASYNCIODEBUG=1 
     command: >
       pipenv run python run_payment.py
 
@@ -95,5 +106,8 @@ services:
       # - redis
       - tmapi_proxy
     hostname: sms
+    restart: on-failure
+    environment:
+      - PYTHONASYNCIODEBUG=1 
     command: >
       pipenv run python run_sms.py
