@@ -29,6 +29,12 @@ aiohttp-autoreload = "*"
 jsonschema = "*"
 python-dateutil = "*"
 imapclient = "*"
+gino = "*"
+jinja2 = "*"
+aiohttp-jinja2 = "*"
+aiohttp-security = "*"
+aiohttp-login = "*"
+aiohttp-session = "*"
 
 [requires]
 python_version = "3.7"

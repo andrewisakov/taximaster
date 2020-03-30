@@ -111,3 +111,25 @@ services:
       - PYTHONASYNCIODEBUG=1 
     command: >
       pipenv run python run_sms.py
+
+  # tmradio:
+  #   build:
+  #     context: ./
+  #     dockerfile: ./tmradio/dockerfile
+  #   volumes:
+  #     - /var/log:/tmradio/tmradio/logs
+  #   container_name: tmradio
+  #   links:
+  #     # - redis
+  #     - tmradio
+  #   ports:
+  #     - 8055:8055
+  #   depends_on:
+  #     # - redis
+  #     - tmapi_proxy
+  #   hostname: tmradio
+  #   restart: on-failure
+  #   environment:
+  #     - PYTHONASYNCIODEBUG=1 
+  #   command: >
+  #     pipenv run python run_tmradio.py
